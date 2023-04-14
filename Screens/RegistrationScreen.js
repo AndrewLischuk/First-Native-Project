@@ -11,6 +11,8 @@ import {
   Text,
   View,
 } from "react-native";
+import * as Font from "expo-font";
+import AppLoading from "expo-app-loading";
 
 const INITIAL_STATE = {
   name: "",
@@ -18,10 +20,26 @@ const INITIAL_STATE = {
   password: "",
 };
 
+const loadFonts = async () => {
+  await Font.loadAsync({
+    "Roboto-Bold": require("../assets/Fonts/Roboto-Bold.ttf"),
+    "Roboto-Regular": require("../assets/Fonts/Roboto-Regular.ttf"),
+  });
+};
 export const RegistrationScreen = () => {
   const [state, setState] = useState(INITIAL_STATE);
   const [isKeyboardShown, setIsKeyboardShown] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
+  if (!isReady) {
+    return (
+      <AppLoading
+        startAsync={loadFonts}
+        onFinish={() => setIsReady(true)}
+        onError={console.warn}
+      />
+    );
+  }
   const keyboardHide = () => {
     setIsKeyboardShown(false);
     Keyboard.dismiss();
@@ -121,13 +139,10 @@ const st = StyleSheet.create({
     flex: 1,
     resizeMode: "cover",
     justifyContent: "flex-start",
-    // alignItems: "center",
   },
   form: {
-    // flex: 1,
     marginTop: 260,
     justifyContent: "flex-start",
-    // height: 550,
     backgroundColor: "#fff",
     paddingHorizontal: 32,
     borderWidth: 1,
@@ -144,6 +159,7 @@ const st = StyleSheet.create({
     fontSize: 30,
     fontWeight: 500,
     color: "#212121",
+    fontFamily: "Roboto-Bold",
   },
   inpWrapper: { marginTop: 16 },
   input: {
@@ -153,6 +169,7 @@ const st = StyleSheet.create({
     color: "#212121",
     backgroundColor: "#F6F6F6",
     padding: 16,
+    fontFamily: "Roboto-Regular",
   },
   btn: {
     marginTop: 32,
@@ -167,11 +184,17 @@ const st = StyleSheet.create({
     fontSize: 16,
     fontWeight: 400,
     color: "#fff",
+    fontFamily: "Roboto-Regular",
   },
   ref: {
     paddingBottom: 80,
     marginTop: 16,
     alignItems: "center",
   },
-  refTitle: { fontSize: 16, fontWeight: 400, color: "#1B4371" },
+  refTitle: {
+    fontSize: 16,
+    fontWeight: 400,
+    color: "#1B4371",
+    fontFamily: "Roboto-Regular",
+  },
 });
