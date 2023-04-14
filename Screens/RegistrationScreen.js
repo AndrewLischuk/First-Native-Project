@@ -11,8 +11,6 @@ import {
   Text,
   View,
 } from "react-native";
-import * as Font from "expo-font";
-import AppLoading from "expo-app-loading";
 
 const INITIAL_STATE = {
   name: "",
@@ -20,30 +18,15 @@ const INITIAL_STATE = {
   password: "",
 };
 
-const loadFonts = async () => {
-  await Font.loadAsync({
-    "Roboto-Bold": require("../assets/Fonts/Roboto-Bold.ttf"),
-    "Roboto-Regular": require("../assets/Fonts/Roboto-Regular.ttf"),
-  });
-};
-export const RegistrationScreen = () => {
+export const RegistrationScreen = ({ fonts }) => {
   const [state, setState] = useState(INITIAL_STATE);
   const [isKeyboardShown, setIsKeyboardShown] = useState(false);
-  const [isReady, setIsReady] = useState(false);
 
-  if (!isReady) {
-    return (
-      <AppLoading
-        startAsync={loadFonts}
-        onFinish={() => setIsReady(true)}
-        onError={console.warn}
-      />
-    );
-  }
   const keyboardHide = () => {
     setIsKeyboardShown(false);
     Keyboard.dismiss();
   };
+
   const sendData = () => {
     setIsKeyboardShown(false);
     Keyboard.dismiss();
@@ -68,7 +51,11 @@ export const RegistrationScreen = () => {
               }}
             >
               <View style={st.formTitle}>
-                <Text style={st.formTitleText}>Регистрация</Text>
+                <Text
+                  style={{ ...st.formTitleText, fontFamily: fonts.robotoBold }}
+                >
+                  Регистрация
+                </Text>
               </View>
 
               <View style={st.inpWrapper}>
@@ -79,7 +66,7 @@ export const RegistrationScreen = () => {
                     setState((prev) => ({ ...prev, name: value }))
                   }
                   onSubmitEditing={sendData}
-                  style={st.input}
+                  style={{ ...st.input, fontFamily: fonts.robotoRegular }}
                   placeholder="Логин"
                 />
               </View>
@@ -91,7 +78,7 @@ export const RegistrationScreen = () => {
                     setState((prev) => ({ ...prev, email: value }))
                   }
                   onSubmitEditing={sendData}
-                  style={st.input}
+                  style={{ ...st.input, fontFamily: fonts.robotoRegular }}
                   placeholder="Адрес электронной почты"
                 />
               </View>
@@ -103,7 +90,7 @@ export const RegistrationScreen = () => {
                     setState((prev) => ({ ...prev, password: value }))
                   }
                   onSubmitEditing={sendData}
-                  style={st.input}
+                  style={{ ...st.input, fontFamily: fonts.robotoRegular }}
                   placeholder="Пароль"
                   secureTextEntry={true}
                 />
@@ -113,14 +100,22 @@ export const RegistrationScreen = () => {
                 onPress={sendData}
                 style={st.btn}
               >
-                <Text style={st.btnTitle}>Зарегистрироваться</Text>
+                <Text
+                  style={{ ...st.btnTitle, fontFamily: fonts.robotoRegular }}
+                >
+                  Зарегистрироваться
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => keyboardHide()}
                 style={st.ref}
               >
-                <Text style={st.refTitle}>Уже есть аккаунт? Войти</Text>
+                <Text
+                  style={{ ...st.refTitle, fontFamily: fonts.robotoRegular }}
+                >
+                  Уже есть аккаунт? Войти
+                </Text>
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
@@ -159,7 +154,6 @@ const st = StyleSheet.create({
     fontSize: 30,
     fontWeight: 500,
     color: "#212121",
-    fontFamily: "Roboto-Bold",
   },
   inpWrapper: { marginTop: 16 },
   input: {
@@ -168,8 +162,7 @@ const st = StyleSheet.create({
     borderRadius: 8,
     color: "#212121",
     backgroundColor: "#F6F6F6",
-    padding: 16,
-    fontFamily: "Roboto-Regular",
+    padding: 10,
   },
   btn: {
     marginTop: 32,
@@ -184,7 +177,6 @@ const st = StyleSheet.create({
     fontSize: 16,
     fontWeight: 400,
     color: "#fff",
-    fontFamily: "Roboto-Regular",
   },
   ref: {
     paddingBottom: 80,
@@ -195,6 +187,5 @@ const st = StyleSheet.create({
     fontSize: 16,
     fontWeight: 400,
     color: "#1B4371",
-    fontFamily: "Roboto-Regular",
   },
 });

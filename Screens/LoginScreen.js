@@ -17,7 +17,7 @@ const INITIAL_STATE = {
   password: "",
 };
 
-export const LoginScreen = () => {
+export const LoginScreen = ({ fonts }) => {
   const [state, setState] = useState(INITIAL_STATE);
   const [isKeyboardShown, setIsKeyboardShown] = useState(false);
 
@@ -25,6 +25,7 @@ export const LoginScreen = () => {
     setIsKeyboardShown(false);
     Keyboard.dismiss();
   };
+
   const sendData = () => {
     setIsKeyboardShown(false);
     Keyboard.dismiss();
@@ -46,7 +47,11 @@ export const LoginScreen = () => {
               style={{ ...st.form, marginTop: isKeyboardShown ? 250 : 325 }}
             >
               <View style={st.formTitle}>
-                <Text style={st.formTitleText}>Войти</Text>
+                <Text
+                  style={{ ...st.formTitleText, fontFamily: fonts.robotoBold }}
+                >
+                  Войти
+                </Text>
               </View>
               <View style={st.inpWrapper}>
                 <TextInput
@@ -56,7 +61,7 @@ export const LoginScreen = () => {
                     setState((prev) => ({ ...prev, email: value }))
                   }
                   onSubmitEditing={sendData}
-                  style={st.input}
+                  style={{ ...st.input, fontFamily: fonts.robotoRegular }}
                   placeholder="Адрес электронной почты"
                 />
               </View>
@@ -68,7 +73,7 @@ export const LoginScreen = () => {
                     setState((prev) => ({ ...prev, password: value }))
                   }
                   onSubmitEditing={sendData}
-                  style={st.input}
+                  style={{ ...st.input, fontFamily: fonts.robotoRegular }}
                   placeholder="Пароль"
                   secureTextEntry={true}
                 />
@@ -78,14 +83,20 @@ export const LoginScreen = () => {
                 onPress={sendData}
                 style={st.btn}
               >
-                <Text style={st.btnTitle}>Войти</Text>
+                <Text
+                  style={{ ...st.btnTitle, fontFamily: fonts.robotoRegular }}
+                >
+                  Войти
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => keyboardHide()}
                 style={st.ref}
               >
-                <Text style={st.refTitle}>
+                <Text
+                  style={{ ...st.refTitle, fontFamily: fonts.robotoRegular }}
+                >
                   Нет аккаунта? Зарегистрироваться
                 </Text>
               </TouchableOpacity>
@@ -106,11 +117,9 @@ const st = StyleSheet.create({
     flex: 1,
     resizeMode: "cover",
     justifyContent: "flex-end",
-    // alignItems: "center",
   },
   form: {
-    // flex: 1,
-    paddingBottom: 150,
+    paddingBottom: 200,
     backgroundColor: "#fff",
     paddingHorizontal: 32,
     borderWidth: 1,
@@ -135,7 +144,8 @@ const st = StyleSheet.create({
     borderRadius: 8,
     color: "#212121",
     backgroundColor: "#F6F6F6",
-    padding: 16,
+    padding: 10,
+    fontSize: 16,
   },
   btn: {
     marginTop: 32,
@@ -152,7 +162,6 @@ const st = StyleSheet.create({
     color: "#fff",
   },
   ref: {
-    // marginBottom: 145,
     marginTop: 16,
     alignItems: "center",
   },
