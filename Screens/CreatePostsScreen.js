@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -10,13 +10,24 @@ import {
   Platform,
   Keyboard,
   TouchableWithoutFeedback,
+  Image,
+  Alert,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Feather, FontAwesome } from "@expo/vector-icons";
+import { Camera, CameraType } from "expo-camera";
+import * as MediaLibrary from "expo-media-library";
+import * as Location from "expo-location";
 
 export const CreatePostsScreen = ({ navigation }) => {
   const [name, setName] = useState("");
   const [locationUser, setLocationUser] = useState("");
   const [isKeyboardShown, setIsKeyboardShown] = useState(false);
+  const [hasPermission, setHasPermission] = useState(null);
+  const [type, setType] = useState(Camera.Constants.Type.back);
+  const [photo, setPhoto] = useState("");
+  const [location, setLocation] = useState(null);
+
+  const cameraRef = useRef();
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
@@ -32,19 +43,148 @@ export const CreatePostsScreen = ({ navigation }) => {
     };
   }, []);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const { status } = await Camera.requestCameraPermissionsAsync();
+        await MediaLibrary.requestPermissionsAsync();
+
+        setHasPermission(status === "granted");
+      } catch (error) {
+        console.log(error);
+      }
+    })();
+  }, [Camera, MediaLibrary, setHasPermission, photo]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          console.log("Permission to access location was denied");
+        }
+
+        let location = await Location.getCurrentPositionAsync({});
+
+        const coords = {
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        };
+        setLocation(coords);
+        console.log("coords", coords);
+      } catch (error) {
+        console.log(error);
+      }
+    })();
+  }, [Location, setLocation]);
+
+  if (hasPermission === null) {
+    return <View />;
+  }
+
+  if (hasPermission === false) {
+    return <Text>No access to camera</Text>;
+  }
+
+  const takePoto = async () => {
+    if (cameraRef.current) {
+      try {
+        const options = {
+          quality: 1,
+          base64: true,
+          skipProcessing: true,
+        };
+        const { uri } = await cameraRef.current.takePictureAsync(options);
+        const photoLibrary = await MediaLibrary.createAssetAsync(uri);
+        // console.log("uri", uri);
+        console.log("photoLibrary", photoLibrary);
+        setPhoto(photoLibrary.uri);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
+
+  const onSubmit = async (e) => {
+    if (!photo || !name || !locationUser) {
+      return Alert.alert("Помилка!", "Заповніть усі поля", [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel",
+        },
+        { text: "OK", onPress: () => console.log("OK Pressed") },
+      ]);
+    }
+    console.log(photo, name, locationUser, location);
+    try {
+      console.log("done");
+      resetForm();
+      navigation.navigate("Публікації");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const keyboardHide = () => {
     setIsKeyboardShown(false);
     Keyboard.dismiss();
+  };
+
+  const resetForm = async () => {
+    setPhoto("");
+    setName("");
+    setLocationUser("");
   };
 
   return (
     <TouchableWithoutFeedback onPress={keyboardHide}>
       <View style={styles.container}>
         <View>
-          <View style={styles.cameraContainer}></View>
+          <View style={styles.cameraContainer}>
+            <Camera
+              style={styles.camera}
+              type={type}
+              ref={cameraRef}
+              ratio="1:1"
+            >
+              {photo && (
+                <View style={styles.cameraImageBox}>
+                  <Image
+                    source={{
+                      uri: photo,
+                    }}
+                    style={styles.cameraImage}
+                  />
+                </View>
+              )}
+              <TouchableOpacity
+                style={styles.flipContainer}
+                onPress={() => {
+                  setType(
+                    type === Camera.Constants.Type.back
+                      ? Camera.Constants.Type.front
+                      : Camera.Constants.Type.back
+                  );
+                }}
+              >
+                <Text
+                  style={{ fontSize: 18, marginBottom: 10, color: "white" }}
+                >
+                  {" "}
+                  Flip{" "}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={takePoto}>
+                <FontAwesome name="camera" size={24} color="#BDBDBD" />
+              </TouchableOpacity>
+            </Camera>
+          </View>
           <View>
             <View>
-              <Text style={styles.photoInformation}>Завантажте фото</Text>
+              <Text style={styles.photoInformation}>
+                {photo ? "Редагувати фото" : "Завантажте фото"}
+              </Text>
             </View>
             <KeyboardAvoidingView
               behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -89,7 +229,7 @@ export const CreatePostsScreen = ({ navigation }) => {
                 </View>
                 <TouchableOpacity
                   style={styles.subButton}
-                  // onPress={onSubmit}
+                  onPress={onSubmit}
                   activeOpacity="0.8"
                 >
                   <Text style={styles.buttonText}>Опубліковати</Text>
@@ -100,7 +240,7 @@ export const CreatePostsScreen = ({ navigation }) => {
         </View>
         <TouchableOpacity
           style={!isKeyboardShown ? styles.trashButton : { display: "none" }}
-          // onPress={resetForm}
+          onPress={resetForm}
         >
           <Feather name="trash-2" size={24} color="#BDBDBD" />
         </TouchableOpacity>

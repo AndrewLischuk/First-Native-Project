@@ -14,14 +14,7 @@ export const PostsScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.user}>
         <View>
-          <Image
-            // source={{
-            //   uri: photoURL,
-            //   cache: "only-if-cached",
-            // }}
-            // style={{ width: 60, height: 60, backgroundColor: "red" }}
-            style={styles.userImg}
-          />
+          <Image style={styles.userImg} />
         </View>
         <View style={styles.userInformation}>
           <Text style={styles.userName}>Ім'я користувача</Text>
