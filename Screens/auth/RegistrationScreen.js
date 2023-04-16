@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   StyleSheet,
   TextInput,
@@ -13,13 +13,28 @@ import {
 } from "react-native";
 
 const INITIAL_STATE = {
+  name: "",
   email: "",
   password: "",
 };
 
-export const LoginScreen = ({ fonts }) => {
+export const RegistrationScreen = ({ navigation }) => {
   const [state, setState] = useState(INITIAL_STATE);
   const [isKeyboardShown, setIsKeyboardShown] = useState(false);
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
+      setIsKeyboardShown(true);
+    });
+    const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
+      setIsKeyboardShown(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const keyboardHide = () => {
     setIsKeyboardShown(false);
@@ -37,21 +52,33 @@ export const LoginScreen = ({ fonts }) => {
     <TouchableWithoutFeedback onPress={keyboardHide}>
       <View style={st.container}>
         <ImageBackground
-          source={require("../assets/imageBg.png")}
+          source={require("../../assets/imageBg.png")}
           style={st.imgBg}
         >
           <KeyboardAvoidingView
             behavior={Platform.OS == "ios" ? "padding" : "height"}
           >
             <View
-              style={{ ...st.form, marginTop: isKeyboardShown ? 250 : 325 }}
+              style={{
+                ...st.form,
+                marginTop: isKeyboardShown ? 150 : 260,
+              }}
             >
               <View style={st.formTitle}>
-                <Text
-                  style={{ ...st.formTitleText, fontFamily: fonts.robotoBold }}
-                >
-                  Войти
-                </Text>
+                <Text style={st.formTitleText}>Реєстрація</Text>
+              </View>
+
+              <View style={st.inpWrapper}>
+                <TextInput
+                  value={state.name}
+                  onFocus={() => setIsKeyboardShown(true)}
+                  onChangeText={(value) =>
+                    setState((prev) => ({ ...prev, name: value }))
+                  }
+                  onSubmitEditing={sendData}
+                  style={{ ...st.input }}
+                  placeholder="Логін"
+                />
               </View>
               <View style={st.inpWrapper}>
                 <TextInput
@@ -61,8 +88,8 @@ export const LoginScreen = ({ fonts }) => {
                     setState((prev) => ({ ...prev, email: value }))
                   }
                   onSubmitEditing={sendData}
-                  style={{ ...st.input, fontFamily: fonts.robotoRegular }}
-                  placeholder="Адрес электронной почты"
+                  style={st.input}
+                  placeholder="Адреса електронної пошти"
                 />
               </View>
               <View style={st.inpWrapper}>
@@ -73,21 +100,18 @@ export const LoginScreen = ({ fonts }) => {
                     setState((prev) => ({ ...prev, password: value }))
                   }
                   onSubmitEditing={sendData}
-                  style={{ ...st.input, fontFamily: fonts.robotoRegular }}
+                  style={st.input}
                   placeholder="Пароль"
                   secureTextEntry={true}
                 />
               </View>
               <TouchableOpacity
                 activeOpacity={0.7}
-                onPress={sendData}
+                // onPress={sendData}
+                onPress={() => navigation.navigate("Home")}
                 style={st.btn}
               >
-                <Text
-                  style={{ ...st.btnTitle, fontFamily: fonts.robotoRegular }}
-                >
-                  Войти
-                </Text>
+                <Text style={st.btnTitle}>Зареєструватися</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 activeOpacity={0.7}
@@ -95,9 +119,10 @@ export const LoginScreen = ({ fonts }) => {
                 style={st.ref}
               >
                 <Text
-                  style={{ ...st.refTitle, fontFamily: fonts.robotoRegular }}
+                  style={st.refTitle}
+                  onPress={() => navigation.navigate("Login")}
                 >
-                  Нет аккаунта? Зарегистрироваться
+                  Вже є аккаунт? Увійти
                 </Text>
               </TouchableOpacity>
             </View>
@@ -116,10 +141,10 @@ const st = StyleSheet.create({
   imgBg: {
     flex: 1,
     resizeMode: "cover",
-    justifyContent: "flex-end",
+    justifyContent: "flex-start",
   },
   form: {
-    paddingBottom: 200,
+    justifyContent: "flex-start",
     backgroundColor: "#fff",
     paddingHorizontal: 32,
     borderWidth: 1,
@@ -128,14 +153,14 @@ const st = StyleSheet.create({
     borderTopRightRadius: 25,
   },
   formTitle: {
-    marginTop: 32,
+    marginTop: 92,
     marginBottom: 16,
     alignItems: "center",
   },
   formTitleText: {
     fontSize: 30,
-    fontWeight: 500,
     color: "#212121",
+    fontFamily: "Roboto-Bold",
   },
   inpWrapper: { marginTop: 16 },
   input: {
@@ -145,7 +170,7 @@ const st = StyleSheet.create({
     color: "#212121",
     backgroundColor: "#F6F6F6",
     padding: 10,
-    fontSize: 16,
+    fontFamily: "Roboto-Regular",
   },
   btn: {
     marginTop: 32,
@@ -158,12 +183,17 @@ const st = StyleSheet.create({
   },
   btnTitle: {
     fontSize: 16,
-    fontWeight: 400,
     color: "#fff",
+    fontFamily: "Roboto-Regular",
   },
   ref: {
+    paddingBottom: 150,
     marginTop: 16,
     alignItems: "center",
   },
-  refTitle: { fontSize: 16, fontWeight: 400, color: "#1B4371" },
+  refTitle: {
+    fontSize: 16,
+    color: "#1B4371",
+    fontFamily: "Roboto-Regular",
+  },
 });
