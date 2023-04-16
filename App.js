@@ -5,6 +5,8 @@ import * as SplashScreen from "expo-splash-screen";
 SplashScreen.preventAutoHideAsync();
 import { Text } from "react-native";
 import { Main } from "./Component/Main";
+import { Provider } from "react-redux";
+import { store } from "./redux/store";
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -23,5 +25,9 @@ export default function App() {
   }
   onLayoutRootView();
 
-  return <Main />;
+  return (
+    <Provider store={store}>
+      <Main />
+    </Provider>
+  );
 }

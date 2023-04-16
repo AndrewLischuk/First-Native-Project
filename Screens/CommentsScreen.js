@@ -1,4 +1,12 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
+import {
+  addDoc,
+  collection,
+  doc,
+  getFirestore,
+  onSnapshot,
+  setDoc,
+} from "firebase/firestore";
 import {
   Image,
   Text,
@@ -11,11 +19,89 @@ import {
   Platform,
   Keyboard,
   TouchableWithoutFeedback,
+  FlatList,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
+import { useDispatch, useSelector } from "react-redux";
+import { getPhotoURL } from "../firebase/options";
 
-export const CommentsScreen = ({ navigation }) => {
+export const CommentsScreen = ({ navigation, route }) => {
   const [coment, setComent] = useState("");
+  const [data, setData] = useState([]);
+  const { uid, userName, photoURL } = useSelector((state) => state.auth);
+  const flatList = useRef(null);
+  const item = route.params.item;
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    getComments();
+  }, [getComments]);
+
+  const getComments = async () => {
+    try {
+      const db = getFirestore();
+      await onSnapshot(
+        collection(db, "posts", item.id, "comand"),
+        (snapshot) => {
+          snapshot.docChanges().map(async (change) => {
+            console.log(change.type);
+            const photo =
+              uid == change.doc.data().uid
+                ? photoURL
+                : await getPhotoURL(change.doc.data().uid);
+            const comment = {
+              id: change.doc.id,
+              postId: item.id,
+              photoURL: photo,
+              ...change.doc.data(),
+            };
+            if (change.type === "added" && indexOfId(comment.id) < 0) {
+              setData((data) => [...data, comment]);
+              dispatch(snepshitComment({ comment }));
+            }
+            if (change.type === "modified") {
+              console.log("Modified city: ", change.doc.data());
+            }
+            if (change.type === "removed") {
+              console.log("Removed city: ", change.doc.data());
+            }
+          });
+        }
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const indexOfId = (id) => {
+    for (let index = 0; index < data.length; index++) {
+      if (data[index].id == id) {
+        return index;
+      }
+    }
+    return -1;
+  };
+
+  const addComent = async () => {
+    try {
+      const db = getFirestore();
+      const date = Date.now().toString();
+      const docRef = await addDoc(collection(db, "posts", item.id, "comand"), {
+        coment,
+        uid,
+        userName,
+        date,
+      });
+      console.log("Document written with ID: ", docRef);
+      setComent("");
+      onCloseKeyboard();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const dataD = data.sort((a, b) => a.date - b.date);
 
   const onCloseKeyboard = () => {
     Keyboard.dismiss();
@@ -26,14 +112,73 @@ export const CommentsScreen = ({ navigation }) => {
       <View style={styles.container}>
         <View>
           <Image
-            // source={{
-            //   uri: item.photo,
-            //   cache: "only-if-cached",
-            // }}
+            source={{
+              uri: item.photo,
+              cache: "only-if-cached",
+            }}
             style={styles.photo}
           />
         </View>
         <View style={styles.comentList}>
+          <FlatList
+            ref={flatList}
+            onContentSizeChange={() => {
+              flatList.current.scrollToEnd();
+            }}
+            data={dataD}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View
+                style={
+                  uid == item.uid
+                    ? { flexDirection: "row-reverse" }
+                    : { flexDirection: "row" }
+                }
+              >
+                <Image
+                  source={
+                    item.photoURL
+                      ? {
+                          uri: item.photoURL,
+                          cache: "only-if-cached",
+                        }
+                      : {}
+                  }
+                  style={
+                    uid == item.uid
+                      ? { ...styles.userImg, marginLeft: 16 }
+                      : { ...styles.userImg, marginRight: 16 }
+                  }
+                />
+                <View
+                  style={
+                    uid == item.uid
+                      ? {
+                          ...styles.coment,
+                          borderTopLeftRadius: 6,
+                          borderTopRightRadius: 0,
+                        }
+                      : {
+                          ...styles.coment,
+                          borderTopLeftRadius: 0,
+                          borderTopRightRadius: 6,
+                        }
+                  }
+                >
+                  <Text style={styles.comentText}>{item.coment}</Text>
+                  <Text
+                    style={
+                      uid == item.uid
+                        ? styles.comentDataUser
+                        : styles.comentData
+                    }
+                  >
+                    {new Date(Number(item.date)).toLocaleString()}
+                  </Text>
+                </View>
+              </View>
+            )}
+          />
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
           >
@@ -47,8 +192,8 @@ export const CommentsScreen = ({ navigation }) => {
               />
               <TouchableOpacity
                 style={styles.comentSubBtn}
-                // onPress={addComent}
-                // onBlur={onCloseKeyboard}
+                onPress={addComent}
+                onBlur={onCloseKeyboard}
                 activeOpacity="0.8"
               >
                 <AntDesign name="arrowup" size={24} color="#FFFFFF" />

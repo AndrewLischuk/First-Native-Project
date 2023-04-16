@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
 import {
   StyleSheet,
   Text,
@@ -13,6 +14,7 @@ import {
   Image,
   Alert,
 } from "react-native";
+import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { Feather, FontAwesome } from "@expo/vector-icons";
 import { Camera, CameraType } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
@@ -27,6 +29,7 @@ export const CreatePostsScreen = ({ navigation }) => {
   const [photo, setPhoto] = useState("");
   const [location, setLocation] = useState(null);
 
+  const { uid, userName } = useSelector((state) => state.auth);
   const cameraRef = useRef();
 
   useEffect(() => {
@@ -107,7 +110,7 @@ export const CreatePostsScreen = ({ navigation }) => {
 
   const onSubmit = async (e) => {
     if (!photo || !name || !locationUser) {
-      return Alert.alert("Помилка!", "Заповніть усі поля", [
+      return Alert.alert("Ошибка", "Заполните все поля", [
         {
           text: "Cancel",
           onPress: () => console.log("Cancel Pressed"),
@@ -116,11 +119,38 @@ export const CreatePostsScreen = ({ navigation }) => {
         { text: "OK", onPress: () => console.log("OK Pressed") },
       ]);
     }
-    console.log(photo, name, locationUser, location);
     try {
+      const response = await fetch(photo);
+      const file = await response.blob();
+      const postId = Date.now().toString();
+
+      const storage = getStorage();
+      const storageRef = await ref(storage, `images/${postId}`);
+      await uploadBytes(storageRef, file);
+      const photoUrl = await getDownloadURL(storageRef);
+
+      await addPostData({
+        uid,
+        userName,
+        photo: photoUrl,
+        name,
+        locationUser,
+        location,
+      });
       console.log("done");
+
       resetForm();
       navigation.navigate("Публікації");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const addPostData = async (post) => {
+    try {
+      const db = getFirestore();
+      const docRef = await addDoc(collection(db, "posts"), post);
+      console.log("Document written with ID: ", docRef.id);
     } catch (error) {
       console.log(error);
     }
@@ -222,7 +252,6 @@ export const CreatePostsScreen = ({ navigation }) => {
                     }}
                     value={locationUser}
                     onChangeText={setLocationUser}
-                    //   autoComplete=""
                     placeholder="Місцевість..."
                     placeholderTextColor="#BDBDBD"
                   />

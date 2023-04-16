@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
 import {
-  Button,
   FlatList,
   Text,
   View,
@@ -8,19 +7,93 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
+import { getFirestore } from "firebase/firestore";
+import { Feather } from "@expo/vector-icons";
+import { useSelector } from "react-redux";
 
-export const PostsScreen = ({ navigation }) => {
+const PostsScreen = ({ navigation }) => {
+  const { email, userName, photoURL, uid } = useSelector((state) => state.auth);
+  const { posts } = useSelector((state) => state.posts);
+  const data = posts;
+
+  const db = getFirestore();
+
   return (
     <View style={styles.container}>
       <View style={styles.user}>
         <View>
-          <Image style={styles.userImg} />
+          <Image
+            source={{
+              uri: photoURL,
+              cache: "only-if-cached",
+            }}
+            style={styles.userImg}
+          />
         </View>
         <View style={styles.userInformation}>
-          <Text style={styles.userName}>Ім'я користувача</Text>
-          <Text style={styles.userEmail}>Пошта користувача</Text>
+          <Text style={styles.userName}>{userName}</Text>
+          <Text style={styles.userEmail}>{email}</Text>
         </View>
       </View>
+      <FlatList
+        data={data}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => {
+          let active = false;
+          item.comments.forEach((comment) => {
+            if (comment.uid === uid) {
+              active = true;
+            }
+          });
+          return (
+            <View style={styles.post}>
+              <Image
+                source={{
+                  uri: item.photo,
+                  cache: "only-if-cached",
+                }}
+                style={styles.photo}
+              />
+
+              <Text style={styles.nameText}>{item.name}</Text>
+
+              <View style={styles.interaction}>
+                <TouchableOpacity
+                  style={styles.interactionBtn}
+                  onPress={() => navigation.navigate("Коментарі", { item })}
+                  activeOpacity="0.8"
+                >
+                  <Feather
+                    name="message-circle"
+                    size={24}
+                    color={active ? "#FF6C00" : "#BDBDBD"}
+                    style={
+                      {
+                        // // backgroundColor: "red",
+                        // visibility: "hidden",
+                        // fill: "#8F9BB3",
+                        // borderWidth: 3,
+                      }
+                    }
+                  />
+                  <Text style={styles.coments}>{item.comments.length}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.interactionBtn}
+                  onPress={() =>
+                    navigation.navigate("Мапа", { location: item.location })
+                  }
+                  activeOpacity="0.8"
+                >
+                  <Feather name="map-pin" size={24} color="#BDBDBD" />
+                  <Text style={styles.location}>{item.locationUser}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          );
+        }}
+      />
     </View>
   );
 };
@@ -49,7 +122,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   userName: {
-    fontFamily: "Roboto-Bold",
+    fontFamily: "Roboto-700",
     fontSize: 13,
     lineHeight: 15,
     color: "#212121",
@@ -70,7 +143,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   nameText: {
-    fontFamily: "Roboto-500",
+    fontFamily: "Roboto-Regular",
     fontSize: 16,
     lineHeight: 19,
     color: "#212121",
@@ -105,3 +178,5 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
   },
 });
+
+export default PostsScreen;

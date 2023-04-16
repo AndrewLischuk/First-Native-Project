@@ -10,6 +10,8 @@ import * as SplashScreen from "expo-splash-screen";
 import { LoginScreen } from "../Screens/auth/LoginScreen";
 import { RegistrationScreen } from "../Screens/auth/RegistrationScreen";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
 SplashScreen.preventAutoHideAsync();
 
 const AuthStack = createStackNavigator();
@@ -17,6 +19,80 @@ const MainTabs = createBottomTabNavigator();
 const isLoggedIn = true;
 
 export const Main = () => {
+  const { uid, isLoggedIn, photoURL } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    isLoggedIn && getPostsData();
+
+    !isLoggedIn &&
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          dispatch(
+            authStateChangeUser({
+              email: user.email,
+              name: user.displayName,
+              uid: user.uid,
+              photoURL: user.photoURL,
+            })
+          );
+        }
+      });
+  }, [isLoggedIn, getPostsData]);
+
+  const getPostsData = async () => {
+    try {
+      const db = getFirestore();
+      await onSnapshot(collection(db, "posts"), async (snapshot) => {
+        await snapshot.docChanges().map(async (change) => {
+          getComents(change.doc.id);
+
+          const post = {
+            id: change.doc.id,
+            ...change.doc.data(),
+            length: 0,
+            comments: [],
+            active: false,
+          };
+          if (change.type === "added") {
+            dispatch(added({ post }));
+          }
+          if (change.type === "modified") {
+            console.log("Modified city: ", change.doc.data());
+          }
+          if (change.type === "removed") {
+            console.log("Removed city: ", change.doc.data());
+          }
+        });
+      });
+    } catch (error) {
+      console.log(error);
+      dispatch(added(error));
+    }
+  };
+
+  const getComents = async (id) => {
+    try {
+      const db = getFirestore();
+      const querySnapshot = await getDocs(
+        collection(db, "posts", id, "comand")
+      );
+      await querySnapshot.forEach(async (doc) => {
+        const photo =
+          uid == doc.data().uid ? photoURL : await getPhotoURL(doc.data().uid);
+        const comment = {
+          id: doc.id,
+          postId: id,
+          photoURL: photo,
+          ...doc.data(),
+        };
+        dispatch(snepshitComment({ comment }));
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <NavigationContainer>
       {isLoggedIn ? (
@@ -40,7 +116,6 @@ export const Main = () => {
             options={{
               tabBarShowLabel: false,
               tabBarShow: false,
-
               tabBarIcon: ({ color, size }) => (
                 <View style={styles.buttonPlus}>
                   <Octicons name="plus" color={color} size={size} />
@@ -60,7 +135,7 @@ export const Main = () => {
               },
               headerTintColor: "#212121",
               headerTitleStyle: {
-                fontWeight: "Roboto-500",
+                fontWeight: "Roboto-Bold",
               },
               headerTitleAlign: "center",
             }}
