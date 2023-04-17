@@ -11,7 +11,7 @@ import { getFirestore } from "firebase/firestore";
 import { Feather } from "@expo/vector-icons";
 import { useSelector } from "react-redux";
 
-const PostsScreen = ({ navigation }) => {
+export const PostsScreen = ({ navigation }) => {
   const { email, userName, photoURL, uid } = useSelector((state) => state.auth);
   const { posts } = useSelector((state) => state.posts);
   const data = posts;
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   userName: {
-    fontFamily: "Roboto-700",
+    fontFamily: "Roboto-Bold",
     fontSize: 13,
     lineHeight: 15,
     color: "#212121",
@@ -178,5 +178,3 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
   },
 });
-
-export default PostsScreen;

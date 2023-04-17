@@ -6,6 +6,7 @@ import { TouchableOpacity } from "react-native";
 import { PostsScreen } from "./PostsScreen";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
+import { authStateSignOut } from "../redux/auth/authOptions";
 
 const HomeStack = createStackNavigator();
 

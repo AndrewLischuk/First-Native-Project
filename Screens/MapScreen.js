@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 
-const MapScreen = ({ navigation, route }) => {
+export const MapScreen = ({ navigation, route }) => {
   const location = route.params.location;
   if (!location) {
     return (
@@ -48,5 +48,3 @@ const styles = StyleSheet.create({
     height: Dimensions.get("window").height,
   },
 });
-
-export default MapScreen;

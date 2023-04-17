@@ -12,7 +12,6 @@ export const postsSlice = createSlice({
   initialState,
   extraReducers: (builder) => {
     builder.addCase(added.fulfilled, (state, action) => {
-      // console.log("action", action);
       if (!state.postsId.includes(action.payload.post.id)) {
         state.posts = [{ ...action.payload.post }, ...state.posts];
         state.postsId = [...state.postsId, action.payload.post.id];
@@ -23,7 +22,6 @@ export const postsSlice = createSlice({
     });
 
     builder.addCase(snepshitComment.fulfilled, (state, action) => {
-      // console.log("action", action);
       state.posts.forEach((post) => {
         if (post.id === action.payload.comment.postId) {
           let flag = true;

@@ -11,6 +11,8 @@ import {
   Text,
   View,
 } from "react-native";
+import { useDispatch } from "react-redux";
+import { authSignInUser } from "../../redux/auth/authOptions";
 
 const INITIAL_STATE = {
   email: "",
@@ -20,6 +22,10 @@ const INITIAL_STATE = {
 export const LoginScreen = ({ navigation }) => {
   const [state, setState] = useState(INITIAL_STATE);
   const [isKeyboardShown, setIsKeyboardShown] = useState(false);
+
+  const { email, password } = state;
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
@@ -35,21 +41,30 @@ export const LoginScreen = ({ navigation }) => {
     };
   }, []);
 
-  const keyboardHide = () => {
+  const onCloseKeyboard = () => {
     setIsKeyboardShown(false);
     Keyboard.dismiss();
   };
 
-  const sendData = () => {
+  const onSubmit = () => {
+    if (!email || password.length < 8) {
+      return Alert.alert("Помилка", "Заповніть всі поля", [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel",
+        },
+        { text: "OK", onPress: () => console.log("OK Pressed") },
+      ]);
+    }
     setIsKeyboardShown(false);
     Keyboard.dismiss();
-    console.log(state);
+    dispatch(authSignInUser({ password, email }));
     setState(INITIAL_STATE);
-    // navigation.navigate("Home");
   };
 
   return (
-    <TouchableWithoutFeedback onPress={keyboardHide}>
+    <TouchableWithoutFeedback onPress={onCloseKeyboard}>
       <View style={st.container}>
         <ImageBackground
           source={require("../../assets/imageBg.png")}
@@ -62,13 +77,7 @@ export const LoginScreen = ({ navigation }) => {
               style={{ ...st.form, marginTop: isKeyboardShown ? 280 : 325 }}
             >
               <View style={st.formTitle}>
-                <Text
-                  style={{
-                    ...st.formTitleText,
-                  }}
-                >
-                  Увійти
-                </Text>
+                <Text style={st.formTitleText}>Увійти</Text>
               </View>
               <View style={st.inpWrapper}>
                 <TextInput
@@ -77,40 +86,36 @@ export const LoginScreen = ({ navigation }) => {
                   onChangeText={(value) =>
                     setState((prev) => ({ ...prev, email: value }))
                   }
-                  onSubmitEditing={sendData}
-                  style={{
-                    ...st.input,
-                    // fontFamily: fonts.robotoRegular
-                  }}
+                  onSubmitEditing={onCloseKeyboard}
+                  style={st.input}
                   placeholder="Адреса електронної пошти"
+                  placeholderTextColor="#BDBDBD"
                 />
               </View>
               <View style={st.inpWrapper}>
                 <TextInput
+                  style={st.input}
                   value={state.password}
                   onFocus={() => setIsKeyboardShown(true)}
                   onChangeText={(value) =>
                     setState((prev) => ({ ...prev, password: value }))
                   }
-                  onSubmitEditing={sendData}
-                  style={{
-                    ...st.input,
-                  }}
+                  onSubmitEditing={onCloseKeyboard}
                   placeholder="Пароль"
                   secureTextEntry={true}
+                  placeholderTextColor="#BDBDBD"
                 />
               </View>
               <TouchableOpacity
                 activeOpacity={0.7}
-                onPress={() => navigation.navigate("Home")}
-                // onPress={sendData}
+                onPress={onSubmit}
                 style={st.btn}
               >
                 <Text style={st.btnTitle}>Увійти</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 activeOpacity={0.7}
-                onPress={() => navigation.navigate("Registration")}
+                onPress={() => navigation.navigate("Реєстрація")}
                 style={st.ref}
               >
                 <Text style={st.refTitle}>Немає аккаунта? Зареєструватися</Text>

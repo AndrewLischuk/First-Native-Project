@@ -4,6 +4,9 @@ import { CreatePostsScreen } from "../Screens/CreatePostsScreen";
 import { ProfileScreen } from "../Screens/ProfileScreen";
 import { Home } from "../Screens/Home";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+
+import { onAuthStateChanged } from "firebase/auth";
+
 import { Feather, AntDesign, Octicons } from "@expo/vector-icons";
 
 import * as SplashScreen from "expo-splash-screen";
@@ -12,11 +15,22 @@ import { RegistrationScreen } from "../Screens/auth/RegistrationScreen";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
+
+import {
+  collection,
+  getDocs,
+  getFirestore,
+  onSnapshot,
+} from "firebase/firestore";
+import { authStateChangeUser } from "../redux/auth/authOptions";
+import { auth } from "../firebase/config";
+import { added, snepshitComment } from "../redux/posts/postsOptions";
+import { getPhotoURL } from "../firebase/options";
+
 SplashScreen.preventAutoHideAsync();
 
 const AuthStack = createStackNavigator();
 const MainTabs = createBottomTabNavigator();
-const isLoggedIn = true;
 
 export const Main = () => {
   const { uid, isLoggedIn, photoURL } = useSelector((state) => state.auth);
@@ -43,8 +57,8 @@ export const Main = () => {
   const getPostsData = async () => {
     try {
       const db = getFirestore();
-      await onSnapshot(collection(db, "posts"), async (snapshot) => {
-        await snapshot.docChanges().map(async (change) => {
+      onSnapshot(collection(db, "posts"), async (snapshot) => {
+        snapshot.docChanges().map(async (change) => {
           getComents(change.doc.id);
 
           const post = {
@@ -77,7 +91,7 @@ export const Main = () => {
       const querySnapshot = await getDocs(
         collection(db, "posts", id, "comand")
       );
-      await querySnapshot.forEach(async (doc) => {
+      querySnapshot.forEach(async (doc) => {
         const photo =
           uid == doc.data().uid ? photoURL : await getPhotoURL(doc.data().uid);
         const comment = {

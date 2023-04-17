@@ -16,9 +16,10 @@ import {
 } from "react-native";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { Feather, FontAwesome } from "@expo/vector-icons";
-import { Camera, CameraType } from "expo-camera";
+import { Camera } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
+import { addDoc, collection, getFirestore } from "firebase/firestore";
 
 export const CreatePostsScreen = ({ navigation }) => {
   const [name, setName] = useState("");
@@ -99,7 +100,6 @@ export const CreatePostsScreen = ({ navigation }) => {
         };
         const { uri } = await cameraRef.current.takePictureAsync(options);
         const photoLibrary = await MediaLibrary.createAssetAsync(uri);
-        // console.log("uri", uri);
         console.log("photoLibrary", photoLibrary);
         setPhoto(photoLibrary.uri);
       } catch (error) {
@@ -125,7 +125,7 @@ export const CreatePostsScreen = ({ navigation }) => {
       const postId = Date.now().toString();
 
       const storage = getStorage();
-      const storageRef = await ref(storage, `images/${postId}`);
+      const storageRef = ref(storage, `images/${postId}`);
       await uploadBytes(storageRef, file);
       const photoUrl = await getDownloadURL(storageRef);
 

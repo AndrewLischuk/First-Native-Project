@@ -16,7 +16,7 @@ import * as DocumentPicker from "expo-document-picker";
 import image from "../assets/imageBg.png";
 import { authAddPhotoURL, authStateSignOut } from "../redux/auth/authOptions";
 
-function ProfileScreen({ navigation }) {
+export const ProfileScreen = ({ navigation }) => {
   const { uid, email, photoURL, userName } = useSelector((state) => state.auth);
 
   const dispatch = useDispatch();
@@ -144,9 +144,7 @@ function ProfileScreen({ navigation }) {
       <StatusBar style="auto" />
     </View>
   );
-}
-
-export default ProfileScreen;
+};
 
 const styles = StyleSheet.create({
   container: {

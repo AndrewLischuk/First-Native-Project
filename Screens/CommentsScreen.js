@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   addDoc,
   collection,
@@ -24,6 +24,7 @@ import {
 import { AntDesign } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { getPhotoURL } from "../firebase/options";
+import { snepshitComment } from "../redux/posts/postsOptions";
 
 export const CommentsScreen = ({ navigation, route }) => {
   const [coment, setComent] = useState("");
@@ -41,34 +42,31 @@ export const CommentsScreen = ({ navigation, route }) => {
   const getComments = async () => {
     try {
       const db = getFirestore();
-      await onSnapshot(
-        collection(db, "posts", item.id, "comand"),
-        (snapshot) => {
-          snapshot.docChanges().map(async (change) => {
-            console.log(change.type);
-            const photo =
-              uid == change.doc.data().uid
-                ? photoURL
-                : await getPhotoURL(change.doc.data().uid);
-            const comment = {
-              id: change.doc.id,
-              postId: item.id,
-              photoURL: photo,
-              ...change.doc.data(),
-            };
-            if (change.type === "added" && indexOfId(comment.id) < 0) {
-              setData((data) => [...data, comment]);
-              dispatch(snepshitComment({ comment }));
-            }
-            if (change.type === "modified") {
-              console.log("Modified city: ", change.doc.data());
-            }
-            if (change.type === "removed") {
-              console.log("Removed city: ", change.doc.data());
-            }
-          });
-        }
-      );
+      onSnapshot(collection(db, "posts", item.id, "comand"), (snapshot) => {
+        snapshot.docChanges().map(async (change) => {
+          console.log(change.type);
+          const photo =
+            uid == change.doc.data().uid
+              ? photoURL
+              : await getPhotoURL(change.doc.data().uid);
+          const comment = {
+            id: change.doc.id,
+            postId: item.id,
+            photoURL: photo,
+            ...change.doc.data(),
+          };
+          if (change.type === "added" && indexOfId(comment.id) < 0) {
+            setData((data) => [...data, comment]);
+            dispatch(snepshitComment({ comment }));
+          }
+          if (change.type === "modified") {
+            console.log("Modified city: ", change.doc.data());
+          }
+          if (change.type === "removed") {
+            console.log("Removed city: ", change.doc.data());
+          }
+        });
+      });
     } catch (error) {
       console.log(error);
     }
